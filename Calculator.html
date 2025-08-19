@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple Calculator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Custom styles for the calculator */
+      body {
+        font-family: "Inter", sans-serif; /* Use Inter font */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-color: #f0f2f5; /* Light gray background */
+        margin: 0;
+        padding: 1rem; /* Add some padding for smaller screens */
+      }
+      .calculator-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr); /* 4 columns */
+        gap: 1rem; /* Gap between buttons */
+      }
+      .calculator-button {
+        @apply p-4 rounded-lg shadow-md text-2xl font-semibold flex items-center justify-center cursor-pointer transition-all duration-200 ease-in-out;
+        min-width: 60px; /* Ensure buttons have a minimum width */
+        min-height: 60px; /* Ensure buttons have a minimum height */
+      }
+      .calculator-button:active {
+        @apply transform scale-95; /* Add a slight press effect */
+      }
+      .operator-button {
+        @apply bg-orange-500 hover:bg-orange-600 text-white;
+      }
+      .number-button {
+        @apply bg-gray-200 hover:bg-gray-300 text-gray-800;
+      }
+      .clear-button {
+        @apply bg-red-500 hover:bg-red-600 text-white;
+      }
+      .equals-button {
+        @apply bg-blue-500 hover:bg-blue-600 text-white col-span-2; /* Span two columns */
+      }
+      .zero-button {
+        @apply col-span-2; /* Span two columns */
+      }
+      /* Responsive adjustments */
+      @media (max-width: 640px) {
+        .calculator-container {
+          width: 100%; /* Full width on small screens */
+          max-width: 350px; /* Max width to keep it compact */
+        }
+        .calculator-button {
+          font-size: 1.5rem; /* Smaller font on small screens */
+          padding: 0.75rem;
+          min-width: 50px;
+          min-height: 50px;
+        }
+        .calculator-grid {
+          gap: 0.75rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      class="calculator-container bg-white p-6 rounded-xl shadow-2xl w-full max-w-sm"
+    >
+      <!-- Calculator Display -->
+      <input
+        type="text"
+        id="display"
+        class="w-full h-20 text-right text-5xl font-light mb-4 p-4 rounded-lg bg-gray-100 border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        readonly
+        value="0"
+      />
+
+      <!-- Calculator Buttons Grid -->
+      <div class="calculator-grid">
+        <!-- First Row -->
+        <button class="calculator-button clear-button" data-value="C">C</button>
+        <button class="calculator-button operator-button" data-value="/">
+          /
+        </button>
+        <button class="calculator-button operator-button" data-value="*">
+          *
+        </button>
+        <button class="calculator-button operator-button" data-value="-">
+          -
+        </button>
+
+        <!-- Second Row -->
+        <button class="calculator-button number-button" data-value="7">
+          7
+        </button>
+        <button class="calculator-button number-button" data-value="8">
+          8
+        </button>
+        <button class="calculator-button number-button" data-value="9">
+          9
+        </button>
+        <button class="calculator-button operator-button" data-value="+">
+          +
+        </button>
+
+        <!-- Third Row -->
+        <button class="calculator-button number-button" data-value="4">
+          4
+        </button>
+        <button class="calculator-button number-button" data-value="5">
+          5
+        </button>
+        <button class="calculator-button number-button" data-value="6">
+          6
+        </button>
+        <button
+          class="calculator-button equals-button row-span-2"
+          data-value="="
+        >
+          =
+        </button>
+        <!-- Equals button spans two rows -->
+
+        <!-- Fourth Row -->
+        <button class="calculator-button number-button" data-value="1">
+          1
+        </button>
+        <button class="calculator-button number-button" data-value="2">
+          2
+        </button>
+        <button class="calculator-button number-button" data-value="3">
+          3
+        </button>
+
+        <!-- Fifth Row -->
+        <button
+          class="calculator-button number-button zero-button"
+          data-value="0"
+        >
+          0
+        </button>
+        <button class="calculator-button number-button" data-value=".">
+          .
+        </button>
+      </div>
+    </div>
+
+    <script>
+      // Get the display element
+      const display = document.getElementById("display");
+      // Get all calculator buttons
+      const buttons = document.querySelectorAll(".calculator-button");
+
+      // Variable to track if the last input was an operator or equals
+      let lastInputWasOperator = false;
+      let lastInputWasEquals = false;
+
+      // Function to handle button input (both click and keyboard)
+      function handleInput(value) {
+        // Handle 'C' (Clear) button
+        if (value === "C") {
+          display.value = "0"; // Reset display to 0
+          lastInputWasOperator = false;
+          lastInputWasEquals = false;
+          return; // Exit function
+        }
+
+        // Handle '=' (Equals) button
+        if (value === "=") {
+          try {
+            // Evaluate the expression in the display
+            let result = eval(display.value);
+            // Handle division by zero
+            if (result === Infinity || result === -Infinity) {
+              display.value = "Error: Div by 0";
+            } else {
+              display.value = result;
+            }
+          } catch (error) {
+            // Catch any errors during evaluation (e.g., invalid expressions)
+            display.value = "Error";
+          }
+          lastInputWasEquals = true;
+          lastInputWasOperator = false; // Reset operator flag after calculation
+          return; // Exit function
+        }
+
+        // Handle operator buttons (+, -, *, /)
+        const isOperator = ["+", "-", "*", "/"].includes(value);
+
+        if (isOperator) {
+          // Prevent multiple operators in a row
+          if (lastInputWasOperator) {
+            // Replace the last operator with the new one
+            display.value = display.value.slice(0, -1) + value;
+          } else {
+            // Append the operator
+            display.value += value;
+          }
+          lastInputWasOperator = true;
+          lastInputWasEquals = false; // New input, so not equals
+        } else {
+          // Handle number and decimal point buttons
+          if (display.value === "0" || lastInputWasEquals) {
+            // If display is '0' or last input was '=', replace current display
+            display.value = value;
+          } else {
+            // Append the value to the display
+            display.value += value;
+          }
+          lastInputWasOperator = false; // Not an operator
+          lastInputWasEquals = false; // Not equals
+        }
+      }
+
+      // Add event listener to each button
+      buttons.forEach((button) => {
+        button.addEventListener("click", () => {
+          handleInput(button.dataset.value);
+        });
+      });
+
+      // Add keyboard event listener for numpad control
+      document.addEventListener("keydown", (event) => {
+        // Prevent default behavior for numpad keys
+        if (
+          event.code.startsWith("Numpad") ||
+          event.code === "Enter" ||
+          event.code === "Escape" ||
+          event.code === "Delete"
+        ) {
+          event.preventDefault();
+        }
+
+        // Map keyboard keys to calculator values
+        const keyMap = {
+          Numpad0: "0",
+          Numpad1: "1",
+          Numpad2: "2",
+          Numpad3: "3",
+          Numpad4: "4",
+          Numpad5: "5",
+          Numpad6: "6",
+          Numpad7: "7",
+          Numpad8: "8",
+          Numpad9: "9",
+          NumpadAdd: "+",
+          NumpadSubtract: "-",
+          NumpadMultiply: "*",
+          NumpadDivide: "/",
+          NumpadDecimal: ".",
+          Enter: "=",
+          NumpadEnter: "=",
+          Escape: "C",
+          Delete: "C",
+        };
+
+        const value = keyMap[event.code];
+        if (value) {
+          handleInput(value);
+
+          // Add visual feedback for keyboard input
+          const button = document.querySelector(`[data-value="${value}"]`);
+          if (button) {
+            button.classList.add("transform", "scale-95");
+            button.style.transform = "scale(0.95)";
+            setTimeout(() => {
+              button.classList.remove("transform", "scale-95");
+              button.style.transform = "";
+            }, 100);
+          }
+        }
+      });
+
+      // Also support regular number keys and operators
+      document.addEventListener("keydown", (event) => {
+        const keyMap = {
+          0: "0",
+          1: "1",
+          2: "2",
+          3: "3",
+          4: "4",
+          5: "5",
+          6: "6",
+          7: "7",
+          8: "8",
+          9: "9",
+          "+": "+",
+          "-": "-",
+          "*": "*",
+          "/": "/",
+          ".": ".",
+        };
+
+        const value = keyMap[event.key];
+        if (value && !event.code.startsWith("Numpad")) {
+          event.preventDefault();
+          handleInput(value);
+
+          // Add visual feedback for keyboard input
+          const button = document.querySelector(`[data-value="${value}"]`);
+          if (button) {
+            button.classList.add("transform", "scale-95");
+            button.style.transform = "scale(0.95)";
+            setTimeout(() => {
+              button.classList.remove("transform", "scale-95");
+              button.style.transform = "";
+            }, 100);
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
